@@ -84,29 +84,34 @@
     </button>
 
     <script>
-        function irParaTelegram() {
-            // Dispara evento de clique no Pixel para ajudar a Meta
-            fbq('track', 'Contact');
+    function irParaTelegram() {
+        // 1. Dispara o evento do Pixel (importante para o Facebook)
+        fbq('track', 'Contact');
 
-            // 1. Captura o fbclid da URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const fbclid = urlParams.get('fbclid');
-            
-            // 2. Configura o destino (Username extraído: Mayaoficial_bot)
-            const botUsername = "Mayaoficial_bot"; 
-            let telegramUrl = "https://t.me/" + botUsername; 
+        // 2. Captura o fbclid da URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const fbclid = urlParams.get('fbclid');
+        
+        const botUsername = "Mayaoficial_bot"; 
+        
+        // Monta o argumento de start se houver fbclid
+        const startParam = fbclid ? "?start=fbclid_" + fbclid : "";
 
-            // 3. Anexa o fbclid como parâmetro de inicialização (Deep Linking)
-            if (fbclid) {
-                telegramUrl += "?start=fbclid_" + fbclid;
-            }
+        // 3. Tenta abrir DIRETO no Aplicativo (Deep Link)
+        // O formato 'tg://resolve?domain=' pula a página do navegador
+        const deepLink = "tg://resolve?domain=" + botUsername + startParam.replace("?", "&");
+        
+        // 4. Link de fallback (caso o cara não tenha o app ou o deep link falhe)
+        const fallbackUrl = "https://t.me/" + botUsername + startParam;
 
-            // 4. Redireciona
-            setTimeout(() => {
-                window.location.href = telegramUrl;
-            }, 300); // Pequeno delay para garantir o disparo do Pixel
-        }
-    </script>
+        // Tenta abrir o App. Se falhar em 500ms, vai para o link normal.
+        window.location.href = deepLink;
+
+        setTimeout(function() {
+            window.location.href = fallbackUrl;
+        }, 500);
+    }
+</script>
 
 </body>
 </html>
