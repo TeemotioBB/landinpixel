@@ -7,24 +7,24 @@
 
     <meta property="og:title" content="Maya - Acesso Exclusivo">
     <meta property="og:description" content="Clique para falar comigo no Telegram!">
-    <meta property="og:image" content="maya.jpg">
-    <link rel="icon" href="maya.jpg">
+    <meta property="og:image" content="https://i.postimg.cc/8zPw7cfH/IMG-3647.png">
+    <link rel="icon" href="https://i.postimg.cc/8zPw7cfH/IMG-3647.png">
 
     <script>
-    !function(f,b,e,v,n,t,s)
-    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-    n.queue=[];t=b.createElement(e);t.async=!0;
-    t.src=v;s=b.getElementsByTagName(e)[0];
-    s.parentNode.insertBefore(t,s)}(window, document,'script',
-    'https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init', '735253462874774'); // Seu Pixel ID extraído do código
+    !function(f,b,e,v,n,t,s){
+        if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];
+        t=b.createElement(e);t.async=!0;t.src=v;
+        s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)
+    }(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '735253462874774');
     fbq('track', 'PageView');
     </script>
-    <noscript><img height="1" width="1" style="display:none"
-    src="https://www.facebook.com/tr?id=735253462874774&ev=PageView&noscript=1"
-    /></noscript>
+    <noscript>
+        <img height="1" width="1" style="display:none"
+        src="https://www.facebook.com/tr?id=735253462874774&ev=PageView&noscript=1"/>
+    </noscript>
+
     <style>
         body {
             margin: 0;
@@ -38,17 +38,16 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: white;
         }
-
         .profile-pic {
             width: 180px;
             height: 180px;
             border-radius: 50%;
-            border: 4px solid #0088cc;
+            border: 4px solid #ff0000;
             object-fit: cover;
+            object-position: center;
             margin-bottom: 25px;
-            box-shadow: 0px 0px 25px rgba(0, 136, 204, 0.6);
+            box-shadow: 0px 0px 30px rgba(255, 0, 0, 0.5);
         }
-
         .btn-telegram {
             background-color: #0088cc;
             color: white;
@@ -63,13 +62,11 @@
             box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.4);
             animation: pulse 2s infinite;
         }
-
         @keyframes pulse {
             0% { transform: scale(1); }
             50% { transform: scale(1.05); }
             100% { transform: scale(1); }
         }
-
         .btn-telegram:hover {
             background-color: #00aaff;
         }
@@ -77,41 +74,83 @@
 </head>
 <body>
 
-    <img src="maya.jpg" alt="Maya" class="profile-pic">
-
-    <button class="btn-telegram" onclick="irParaTelegram()">
-        CLIQUE PARA ME VER!
-    </button>
+    <img src="https://i.postimg.cc/8zPw7cfH/IMG-3647.png" alt="Maya" class="profile-pic">
+    
+    <button class="btn-telegram" onclick="irParaTelegram()">CLIQUE PARA ME VER!</button>
 
     <script>
-    function irParaTelegram() {
-        // 1. Dispara o evento do Pixel (importante para o Facebook)
-        fbq('track', 'Contact');
+        // ====================== Funções de Cookie ======================
+        function getCookie(name) {
+            const value = "; " + document.cookie;
+            const parts = value.split("; " + name + "=");
+            if (parts.length === 2) return parts.pop().split(";").shift();
+            return null;
+        }
 
-        // 2. Captura o fbclid da URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const fbclid = urlParams.get('fbclid');
-        
-        const botUsername = "Mayaoficial_bot"; 
-        
-        // Monta o argumento de start se houver fbclid
-        const startParam = fbclid ? "?start=fbclid_" + fbclid : "";
+        function setCookie(name, value, days = 365) {
+            const expires = new Date();
+            expires.setTime(expires.getTime() + (days*24*60*60*1000));
+            document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
+        }
 
-        // 3. Tenta abrir DIRETO no Aplicativo (Deep Link)
-        // O formato 'tg://resolve?domain=' pula a página do navegador
-        const deepLink = "tg://resolve?domain=" + botUsername + startParam.replace("?", "&");
-        
-        // 4. Link de fallback (caso o cara não tenha o app ou o deep link falhe)
-        const fallbackUrl = "https://t.me/" + botUsername + startParam;
+        // ====================== Função Principal ======================
+        async function irParaTelegram() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const fbclid = urlParams.get('fbclid');
+            let uid = urlParams.get('uid');
 
-        // Tenta abrir o App. Se falhar em 500ms, vai para o link normal.
-        window.location.href = deepLink;
+            // ====================== Geração UID ======================
+            if (!uid) {
+                uid = 'track_' + Date.now() + '_' + Math.floor(Math.random()*1000000);
+            }
 
-        setTimeout(function() {
-            window.location.href = fallbackUrl;
-        }, 500);
-    }
-</script>
+            // ====================== Captura _fbp ======================
+            let fbp = getCookie('_fbp');
+            if (!fbp) {
+                fbp = 'fb.1.' + Date.now() + '.' + Math.floor(Math.random() * 1000000000);
+                setCookie('_fbp', fbp);
+            }
+
+            // ====================== Captura _fbc ======================
+            let fbc = getCookie('_fbc');
+            if (!fbc && fbclid) {
+                const ts = Math.floor(Date.now()/1000);
+                fbc = 'fb.1.' + ts + '.' + fbclid;
+                setCookie('_fbc', fbc);
+            }
+
+            // ====================== Dispara Pixel do Navegador ======================
+            if (typeof fbq !== "undefined") fbq('track', 'Contact');
+
+            // ====================== Chamada Backend ======================
+            const serverUrl = "https://pixel-meta-maya-apexvips-production.up.railway.app/apex-tracking";
+            const trackingUrl = `${serverUrl}?uid=${uid}&fbp=${encodeURIComponent(fbp)}&fbc=${encodeURIComponent(fbc || '')}&fbclid=${encodeURIComponent(fbclid || '')}`;
+
+            try {
+                // Espera o backend receber os dados antes do redirecionamento
+                const response = await fetch(trackingUrl, { method: 'GET', credentials: 'include' });
+                if (response.ok) {
+                    console.log("✅ Tracking enviado com sucesso:", {uid, fbp, fbc, fbclid});
+                }
+            } catch (err) {
+                console.warn("❌ Falha no tracking via fetch:", err);
+            }
+
+            // ====================== Redirecionamento para Telegram ======================
+            window.location.href = `https://t.me/Mayaoficial_bot?start=${uid}`;
+        }
+
+        // ====================== Redirecionamento Automático se UID Existir ======================
+        window.addEventListener('load', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const uid = urlParams.get('uid');
+            if (uid && uid.startsWith('track_')) {
+                setTimeout(() => {
+                    window.location.href = `https://t.me/Mayaoficial_bot?start=${uid}`;
+                }, 400);
+            }
+        });
+    </script>
 
 </body>
 </html>
