@@ -37,6 +37,7 @@
             background-color: #0f0f0f;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: white;
+            text-align: center;
         }
         .profile-pic {
             width: 180px;
@@ -49,6 +50,7 @@
             box-shadow: 0px 0px 30px rgba(255, 0, 0, 0.5);
         }
         .btn-telegram {
+            display: inline-block;
             background-color: #0088cc;
             color: white;
             border: none;
@@ -79,7 +81,7 @@
     <button class="btn-telegram" onclick="irParaTelegram()">CLIQUE PARA ME VER!</button>
 
     <script>
-        // ====================== Funções de Cookie ======================
+        // Funções de Cookie
         function getCookie(name) {
             const value = "; " + document.cookie;
             const parts = value.split("; " + name + "=");
@@ -93,63 +95,62 @@
             document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
         }
 
-        // ====================== Função Principal ======================
-        async function irParaTelegram() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const fbclid = urlParams.get('fbclid');
-            let uid = urlParams.get('uid');
+        // Variáveis de Rastreio
+        const urlParams = new URLSearchParams(window.location.search);
+        let uid = urlParams.get('uid');
+        const fbclid = urlParams.get('fbclid') || '';
 
-            // ====================== Geração UID ======================
-            if (!uid) {
-                uid = 'track_' + Date.now() + '_' + Math.floor(Math.random()*1000000);
-            }
-
-            // ====================== Captura _fbp ======================
-            let fbp = getCookie('_fbp');
-            if (!fbp) {
-                fbp = 'fb.1.' + Date.now() + '.' + Math.floor(Math.random() * 1000000000);
-                setCookie('_fbp', fbp);
-            }
-
-            // ====================== Captura _fbc ======================
-            let fbc = getCookie('_fbc');
-            if (!fbc && fbclid) {
-                const ts = Math.floor(Date.now()/1000);
-                fbc = 'fb.1.' + ts + '.' + fbclid;
-                setCookie('_fbc', fbc);
-            }
-
-            // ====================== Dispara Pixel do Navegador ======================
-            if (typeof fbq !== "undefined") fbq('track', 'Contact');
-
-            // ====================== Chamada Backend ======================
-            const serverUrl = "https://pixel-meta-maya-apexvips-production.up.railway.app/apex-tracking";
-            const trackingUrl = `${serverUrl}?uid=${uid}&fbp=${encodeURIComponent(fbp)}&fbc=${encodeURIComponent(fbc || '')}&fbclid=${encodeURIComponent(fbclid || '')}`;
-
-            try {
-                // Espera o backend receber os dados antes do redirecionamento
-                const response = await fetch(trackingUrl, { method: 'GET', credentials: 'include' });
-                if (response.ok) {
-                    console.log("✅ Tracking enviado com sucesso:", {uid, fbp, fbc, fbclid});
-                }
-            } catch (err) {
-                console.warn("❌ Falha no tracking via fetch:", err);
-            }
-
-            // ====================== Redirecionamento para Telegram ======================
-            window.location.href = `https://t.me/Mayaoficial_bot?start=${uid}`;
+        if (!uid) {
+            uid = 'track_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+            urlParams.set('uid', uid);
+            window.history.replaceState({}, '', `${window.location.pathname}?${urlParams.toString()}`);
         }
 
-        // ====================== Redirecionamento Automático se UID Existir ======================
-        window.addEventListener('load', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const uid = urlParams.get('uid');
-            if (uid && uid.startsWith('track_')) {
-                setTimeout(() => {
-                    window.location.href = `https://t.me/Mayaoficial_bot?start=${uid}`;
-                }, 400);
+        let fbp = getCookie('_fbp');
+        if (!fbp) {
+            fbp = 'fb.1.' + Date.now() + '.' + Math.floor(Math.random() * 1000000000);
+            setCookie('_fbp', fbp);
+        }
+
+        let fbc = getCookie('_fbc');
+        if (!fbc && fbclid) {
+            const ts = Math.floor(Date.now() / 1000);
+            fbc = 'fb.1.' + ts + '.' + fbclid;
+            setCookie('_fbc', fbc);
+        }
+
+        const serverUrl = "https://pixel-meta-maya-apexvips-production.up.railway.app/apex-tracking";
+        const trackingUrl = `${serverUrl}?uid=${uid}&fbp=${encodeURIComponent(fbp)}&fbc=${encodeURIComponent(fbc || '')}&fbclid=${encodeURIComponent(fbclid)}`;
+
+        // TIRO 1: Tracking inicial ao carregar a página
+        fetch(trackingUrl, { mode: 'no-cors' })
+            .then(() => console.log('✅ Rastreamento inicial plantado:', uid))
+            .catch(err => console.error('❌ Erro no rastreio inicial:', err));
+
+        // TIRO 2: Clique do Botão
+        // ✅ FIX: await no fetch + delay de 600ms antes do redirect
+        // Garante que os dados chegam no Redis ANTES do /start ser processado
+                // TIRO 2: Clique do Botão
+        async function irParaTelegram() {
+            if (typeof fbq !== "undefined") fbq('track', 'Contact');
+
+            console.log('📤 Enviando tracking final para UID:', uid);
+            try {
+                await fetch(trackingUrl, { 
+                    method: 'GET', 
+                    mode: 'no-cors',
+                    cache: 'no-cache'
+                });
+                console.log('✅ Tracking final enviado com sucesso');
+                // Aguarda 3,5 segundos para garantir que o servidor grave no Redis
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                console.log('⏱️ Delay finalizado, redirecionando...');
+            } catch (err) {
+                console.warn("⚠️ Erro no sync final:", err);
             }
-        });
+
+            window.location.href = `https://t.me/Mayaoficial_bot?start=${uid}`;
+        }
     </script>
 
 </body>
